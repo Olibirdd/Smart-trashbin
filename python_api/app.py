@@ -1,3 +1,38 @@
+import threading
+import time
+import serial
+from gen_voucher import generate_and_store_voucher
+
+def arduino_listener(serial_port='COM4', baudrate=9600):
+    try:
+        arduino = serial.Serial(serial_port, baudrate, timeout=1)
+        print(f"Listening to Arduino on {serial_port}...")
+        time.sleep(2)  # Give Arduino time to reset
+    except Exception as e:
+        print(f"Could not open serial port {serial_port}: {e}")
+        return
+
+    while True:
+        try:
+            line = arduino.readline().decode('utf-8').strip()
+            if line:
+                print(f"Received from Arduino: {line}")
+                if line == "BOTTLE_DETECTED":
+                    voucher = generate_and_store_voucher()
+                    if voucher:
+                        print(f"Voucher Generated: {voucher}")
+                        # Send voucher to Arduino to display
+                        arduino.write((voucher + "\n").encode('utf-8'))
+                    else:
+                        print("Failed to generate voucher")
+        except Exception as e:
+            print(f"Error reading from Arduino: {e}")
+        time.sleep(0.1)
+
+# Start listener in background
+listener_thread = threading.Thread(target=arduino_listener, daemon=True)
+listener_thread.start()
+
 import os
 import threading, time, subprocess
 from flask import Flask, request, jsonify, send_from_directory

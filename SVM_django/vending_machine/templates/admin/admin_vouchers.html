@@ -6,8 +6,19 @@
 {% block content %}
 <div class="admin-header">
   <h1>Vouchers Management</h1>
-  <button class="btn btn-primary" onclick="openModal('addVoucherModal')">Generate New Voucher</button>
 </div>
+
+<!-- Add messages display with auto-hide at top right -->
+{% if messages %}
+<div class="message-container-top-right" id="messageContainer">
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-auto-hide">
+        <span class="alert-message">{{ message }}</span>
+        <span class="alert-close" onclick="this.parentElement.style.display='none'">×</span>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
 
 <div class="users-table">
   <div class="table-header">
@@ -19,24 +30,22 @@
       <thead>
         <tr>
           <th>Code</th>
-          <th>Duration</th>
           <th>Status</th>
-          <th>Created At</th>
           <th>Redeemed By</th>
+          <th>Created At</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         {% for voucher in vouchers %}
         <tr>
-          <td>{{ voucher.code }}</td>
-          <td>{{ voucher.duration_minutes }} minutes</td>
-          <td>{% if voucher.is_redeemed %}Redeemed{% else %}Available{% endif %}</td>
+          <td>{{ voucher.voucher_code }}</td>
+          <td>{% if voucher.redeemed %}Redeemed{% else %}Available{% endif %}</td>
+          <td>{% if voucher.redeemed_by_email %}{{ voucher.redeemed_by_email }}{% else %}-{% endif %}</td>
           <td>{{ voucher.created_at|date:"M d, Y H:i" }}</td>
-          <td>{% if voucher.redeemed_by %}{{ voucher.redeemed_by.username }}{% else %}-{% endif %}</td>
           <td>
             <div class="action-buttons">
-              <a href="{% url 'admin_delete_voucher' voucher.id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this voucher?')">Delete</a>
+              <a href="{% url 'admin_delete_voucher' voucher.voucher_id %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to delete this voucher?')">Delete</a>
             </div>
           </td>
         </tr>
@@ -47,7 +56,239 @@
     <div style="padding: 20px; text-align: center; color: #7f8c8d;">No vouchers found.</div>
     {% endif %}
   </div>
+  
+  <!-- Modern Pagination controls -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      Showing page {{ vouchers.number }} of {{ vouchers.paginator.num_pages }}
+    </div>
+    <div class="pagination">
+      {% if vouchers.has_previous %}
+        <a href="?page=1" class="pagination-btn pagination-first" title="First Page">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0L0 8l8 8V0zm8 0v16h-2V0h2z"/>
+          </svg>
+        </a>
+        <a href="?page={{ vouchers.previous_page_number }}" class="pagination-btn pagination-prev" title="Previous Page">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M11.5 14.5L5 8l6.5-6.5 1 1L7 8l5.5 5.5-1 1z"/>
+          </svg>
+        </a>
+      {% else %}
+        <span class="pagination-btn pagination-first disabled">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 0L0 8l8 8V0zm8 0v16h-2V0h2z"/>
+          </svg>
+        </span>
+        <span class="pagination-btn pagination-prev disabled">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M11.5 14.5L5 8l6.5-6.5 1 1L7 8l5.5 5.5-1 1z"/>
+          </svg>
+        </span>
+      {% endif %}
+
+      <div class="pagination-pages">
+        {% for num in vouchers.paginator.page_range %}
+          {% if num == vouchers.number %}
+            <span class="pagination-page active">{{ num }}</span>
+          {% elif num > vouchers.number|add:-3 and num < vouchers.number|add:3 %}
+            <a href="?page={{ num }}" class="pagination-page">{{ num }}</a>
+          {% elif num == 1 or num == vouchers.paginator.num_pages %}
+            <a href="?page={{ num }}" class="pagination-page">{{ num }}</a>
+          {% elif num == vouchers.number|add:-3 or num == vouchers.number|add:2 %}
+            <span class="pagination-ellipsis">...</span>
+          {% endif %}
+        {% endfor %}
+      </div>
+
+      {% if vouchers.has_next %}
+        <a href="?page={{ vouchers.next_page_number }}" class="pagination-btn pagination-next" title="Next Page">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4.5 1.5l6.5 6.5-6.5 6.5-1-1L9 8 3.5 2.5l1-1z"/>
+          </svg>
+        </a>
+        <a href="?page={{ vouchers.paginator.num_pages }}" class="pagination-btn pagination-last" title="Last Page">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 16l8-8-8-8v16zM0 0v16h2V0H0z"/>
+          </svg>
+        </a>
+      {% else %}
+        <span class="pagination-btn pagination-next disabled">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M4.5 1.5l6.5 6.5-6.5 6.5-1-1L9 8 3.5 2.5l1-1z"/>
+          </svg>
+        </span>
+        <span class="pagination-btn pagination-last disabled">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+            <path d="M8 16l8-8-8-8v16zM0 0v16h2V0H0z"/>
+          </svg>
+        </span>
+      {% endif %}
+    </div>
+  </div>
 </div>
 
-<!-- Add Voucher Modal remains the same -->
+<style>
+/* Modern Pagination Styles */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-top: 1px solid #eee;
+  background-color: #f9f9f9;
+}
+
+.pagination-info {
+  color: #6c757d;
+  font-size: 14px;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.pagination-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  background-color: white;
+  color: #3ac44c;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.pagination-btn:hover:not(.disabled) {
+  background-color: #3ac44c;
+  color: white;
+  border-color: #3ac44c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.pagination-btn.disabled {
+  color: #adb5bd;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.pagination-pages {
+  display: flex;
+  gap: 5px;
+  margin: 0 10px;
+}
+
+.pagination-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid #dee2e6;
+  background-color: white;
+  color: #495057;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.pagination-page:hover:not(.active) {
+  background-color: #f8f9fa;
+  border-color: #3ac44c;
+  color: #3ac44c;
+}
+
+.pagination-page.active {
+  background-color: #3ac44c;
+  border-color: #3ac44c;
+  color: white;
+  box-shadow: 0 2px 5px rgba(58, 196, 76, 0.3);
+}
+
+.pagination-ellipsis {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+  .pagination-container {
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .pagination-pages {
+    margin: 0 5px;
+  }
+  
+  .pagination-page, .pagination-btn {
+    width: 32px;
+    height: 32px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 576px) {
+  .pagination-pages {
+    display: none;
+  }
+  
+  .pagination-info {
+    text-align: center;
+  }
+}
+</style>
+
+<script>
+window.onclick = function(event) {
+    var modals = document.getElementsByClassName('modal');
+    for (var i=0; i<modals.length; i++) {
+        if (event.target == modals[i]) {
+            modals[i].style.display = 'none';
+        }
+    }
+}
+
+// Auto-hide messages after 3 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        var messageContainer = document.getElementById('messageContainer');
+        if (messageContainer) {
+            var alerts = messageContainer.getElementsByClassName('alert');
+            for (var i = 0; i < alerts.length; i++) {
+                alerts[i].style.animation = 'fadeOut 0.5s ease-in-out forwards';
+            }
+            setTimeout(function() {
+                if (messageContainer) {
+                    messageContainer.style.display = 'none';
+                }
+            }, 600);
+        }
+    }, 3000);
+});
+
+// Manual close functionality
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('alert-close')) {
+        e.target.parentElement.style.animation = 'fadeOut 0.3s ease-in-out forwards';
+        setTimeout(function() {
+            e.target.parentElement.style.display = 'none';
+        }, 300);
+    }
+});
+</script>
+
 {% endblock content %}

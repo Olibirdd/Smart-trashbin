@@ -4,6 +4,7 @@ from bson.objectid import ObjectId
 from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.hashers import make_password, check_password
+from django.core.paginator import Paginator
 from .models import User, ActivityLog, Voucher
 
 # ------------------------------
@@ -133,7 +134,9 @@ def logout_view(request):
 @login_required_session
 def dashboard(request):
     user = get_current_user(request)
-    vouchers = Voucher.objects.filter(redeemed_by=user).order_by('-created_at')
+    
+    # FIX: Use redeemed_by_email instead of redeemed_by
+    vouchers = Voucher.objects.filter(redeemed_by_email=user.email).order_by('-created_at')
     transactions = ActivityLog.objects.filter(email=user.email).order_by('-timestamp')
 
     # Count vouchers based on ActivityLog for this user
@@ -147,7 +150,8 @@ def dashboard(request):
         'redeemed_vouchers': redeemed_vouchers_count,
         'total_duration_minutes': total_duration_minutes
     }
-    return render(request, "users/dashboard.html", context)
+    
+    return render(request, 'users/dashboard.html', context)
 
 
 
@@ -171,9 +175,14 @@ def admin_dashboard(request):
 
 @admin_required_session
 def admin_users(request):
-    users = User.objects.all().order_by('-created_at')
+    all_users = User.objects.all().order_by('-created_at')
+    paginator = Paginator(all_users, 10)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     return render(request, 'admin/admin_users.html', {
-        'users': users,
+        'users': page_obj, 
         'title': 'Users Management - Smart Wi-Fi Bin'
     })
 
@@ -319,8 +328,12 @@ def admin_edit_user(request, user_id):
 @admin_required_session
 def admin_vouchers(request):
     vouchers = Voucher.objects.all().order_by('-created_at')
+    paginator = Paginator(vouchers, 10)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
     return render(request, 'admin/admin_vouchers.html', {
-        'vouchers': vouchers,
+        'vouchers': page_obj,
         'title': 'Vouchers Management - Smart Wi-Fi Bin'
     })
 
@@ -342,8 +355,9 @@ def admin_add_voucher(request):
 
 @admin_required_session
 def admin_delete_voucher(request, voucher_id):
-    voucher = get_object_or_404(Voucher, id=voucher_id)
-    code = voucher.code
+    voucher = Voucher.objects.get(_id=ObjectId(voucher_id))
+    code = voucher.voucher_code
     voucher.delete()
     messages.success(request, f'Voucher {code} deleted successfully.')
     return redirect('admin_vouchers')
+

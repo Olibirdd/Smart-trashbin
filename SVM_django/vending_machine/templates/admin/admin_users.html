@@ -63,6 +63,75 @@
         <div style="padding: 20px; text-align: center; color: #7f8c8d;">No users found.</div>
         {% endif %}
     </div>
+    <!-- Modern Pagination controls -->
+    <div class="pagination-container">
+        <div class="pagination-info">
+            Showing page {{ users.number }} of {{ users.paginator.num_pages }}
+        </div>
+        <div class="pagination">
+            {% if users.has_previous %}
+                <a href="?page=1" class="pagination-btn pagination-first" title="First Page">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0L0 8l8 8V0zm8 0v16h-2V0h2z"/>
+                    </svg>
+                </a>
+                <a href="?page={{ users.previous_page_number }}" class="pagination-btn pagination-prev" title="Previous Page">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M11.5 14.5L5 8l6.5-6.5 1 1L7 8l5.5 5.5-1 1z"/>
+                    </svg>
+                </a>
+            {% else %}
+                <span class="pagination-btn pagination-first disabled">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 0L0 8l8 8V0zm8 0v16h-2V0h2z"/>
+                    </svg>
+                </span>
+                <span class="pagination-btn pagination-prev disabled">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M11.5 14.5L5 8l6.5-6.5 1 1L7 8l5.5 5.5-1 1z"/>
+                    </svg>
+                </span>
+            {% endif %}
+
+            <div class="pagination-pages">
+                {% for num in users.paginator.page_range %}
+                    {% if num == users.number %}
+                        <span class="pagination-page active">{{ num }}</span>
+                    {% elif num > users.number|add:-3 and num < users.number|add:3 %}
+                        <a href="?page={{ num }}" class="pagination-page">{{ num }}</a>
+                    {% elif num == 1 or num == users.paginator.num_pages %}
+                        <a href="?page={{ num }}" class="pagination-page">{{ num }}</a>
+                    {% elif num == users.number|add:-3 or num == users.number|add:2 %}
+                        <span class="pagination-ellipsis">...</span>
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            {% if users.has_next %}
+                <a href="?page={{ users.next_page_number }}" class="pagination-btn pagination-next" title="Next Page">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M4.5 1.5l6.5 6.5-6.5 6.5-1-1L9 8 3.5 2.5l1-1z"/>
+                    </svg>
+                </a>
+                <a href="?page={{ users.paginator.num_pages }}" class="pagination-btn pagination-last" title="Last Page">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 16l8-8-8-8v16zM0 0v16h2V0H0z"/>
+                    </svg>
+                </a>
+            {% else %}
+                <span class="pagination-btn pagination-next disabled">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M4.5 1.5l6.5 6.5-6.5 6.5-1-1L9 8 3.5 2.5l1-1z"/>
+                    </svg>
+                </span>
+                <span class="pagination-btn pagination-last disabled">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                        <path d="M8 16l8-8-8-8v16zM0 0v16h2V0H0z"/>
+                    </svg>
+                </span>
+            {% endif %}
+        </div>
+    </div>
 </div>
 
 <!-- Add User Modal -->
@@ -144,118 +213,130 @@
 {% endfor %}
 
 <style>
-.modal {
-    position: fixed;
-    z-index: 999;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-    display: flex;
-    align-items: center;   
-    justify-content: center; 
-}
-
-.modal-content {
-    background-color: #fff;
-    padding: 25px;
-    border-radius: 8px;
-    width: 500px;
-    max-width: 80%;
-    position: relative;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-}
-
-.close {
-    position: absolute;
-    right: 15px;
-    top: 10px;
-    font-size: 24px;
-    cursor: pointer;
-}
-
 .form-group { 
     margin-bottom: 15px; 
     margin-right: 20px;
 }
 
-/* Toast-style alerts at top right */
-.message-container-top-right {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    max-width: 350px;
-}
-
-.alert {
-    padding: 12px 15px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border: 1px solid transparent;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+/* Modern Pagination Styles */
+.pagination-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    transition: all 0.3s ease-in-out;
-    transform: translateX(0);
+    padding: 20px;
+    border-top: 1px solid #eee;
+    background-color: #f9f9f9;
 }
 
-.alert-message {
-    flex: 1;
-    margin-right: 10px;
+.pagination-info {
+    color: #6c757d;
+    font-size: 14px;
 }
 
-.alert-close {
-    cursor: pointer;
-    font-size: 18px;
-    font-weight: bold;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.alert-close:hover {
-    opacity: 1;
+.pagination-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    color: #3ac44c;
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 
-.alert-success {
-    color: #155724;
-    background-color: #d4edda;
-    border-color: #c3e6cb;
+.pagination-btn:hover:not(.disabled) {
+    background-color: #3ac44c;
+    color: white;
+    border-color: #3ac44c;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-.alert-danger {
-    color: #721c24;
-    background-color: #f8d7da;
-    border-color: #f5c6cb;
+.pagination-btn.disabled {
+    color: #adb5bd;
+    cursor: not-allowed;
+    opacity: 0.6;
 }
 
-.alert-auto-hide {
-    animation: slideInRight 0.3s ease-out, fadeOut 0.5s ease-in-out 2s forwards;
+.pagination-pages {
+    display: flex;
+    gap: 5px;
+    margin: 0 10px;
 }
 
-@keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
+.pagination-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    background-color: white;
+    color: #495057;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.pagination-page:hover:not(.active) {
+    background-color: #f8f9fa;
+    border-color: #3ac44c;
+    color: #3ac44c;
+}
+
+.pagination-page.active {
+    background-color: #3ac44c;
+    border-color: #3ac44c;
+    color: white;
+    box-shadow: 0 2px 5px rgba(58, 196, 76, 0.3);
+}
+
+.pagination-ellipsis {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+/* Responsive pagination */
+@media (max-width: 768px) {
+    .pagination-container {
+        flex-direction: column;
+        gap: 15px;
     }
-    to {
-        transform: translateX(0);
-        opacity: 1;
+    
+    .pagination-pages {
+        margin: 0 5px;
+    }
+    
+    .pagination-page, .pagination-btn {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
     }
 }
 
-@keyframes fadeOut {
-    from {
-        opacity: 1;
-        transform: translateX(0);
-    }
-    to {
-        opacity: 0;
-        transform: translateX(100%);
+@media (max-width: 576px) {
+    .pagination-pages {
         display: none;
+    }
+    
+    .pagination-info {
+        text-align: center;
     }
 }
 </style>

@@ -29,18 +29,29 @@ class User(models.Model):
 
 # Vouchers collection
 class Voucher(models.Model):
-    code = models.CharField(max_length=50, unique=True)
-    duration_minutes = models.IntegerField(default=30)
-    is_redeemed = models.BooleanField(default=False)
-    redeemed_at = models.DateTimeField(null=True, blank=True)
-    redeemed_by = models.ForeignKey(User, null=True, blank=True, on_delete=models.SET_NULL)
-    created_at = models.DateTimeField(auto_now_add=True)
+    _id = models.ObjectIdField(primary_key=True, default=ObjectId, editable=False)
+    voucher_code = models.CharField(max_length=50, unique=True)  
+    redeemed = models.BooleanField(default=False)    
+    redeemed_by_email = models.EmailField(null=True, blank=True)  
+    created_at = models.DateTimeField(auto_now_add=True)  
+    redeemed_at = models.DateTimeField(null=True, blank=True)   
 
     class Meta:
         db_table = "vouchers"
 
+    def save(self, *args, **kwargs):
+        # If _id doesn't exist (new user), let MongoDB create it
+        if not self._id:
+            self._id = None  # Let MongoDB generate the _id
+        super().save(*args, **kwargs)
+
+    @property
+    def voucher_id(self):
+        """Property to safely access the MongoDB _id"""
+        return str(self._id) if self._id else None
+
     def __str__(self):
-        return self.code
+        return self.voucher_code
 
 # Activity Logs collection
 class ActivityLog(models.Model):
