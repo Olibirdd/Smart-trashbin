@@ -28,7 +28,7 @@ def store_voucher_in_db(code):
     finally:
         conn.close()
 
-def generate_and_store_voucher():
+def generate_and_store_voucher(duration ):
     """Generate a unique voucher and store it in DB."""
     for _ in range(10):
         code = generate_voucher()

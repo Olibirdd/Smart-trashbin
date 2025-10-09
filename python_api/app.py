@@ -6,28 +6,35 @@ from gen_voucher import generate_and_store_voucher
 def arduino_listener(serial_port='COM4', baudrate=9600):
     try:
         arduino = serial.Serial(serial_port, baudrate, timeout=1)
-        print(f"Listening to Arduino on {serial_port}...")
-        time.sleep(2)  # Give Arduino time to reset
+        print(f'Listening to Arduino on {serial_port}')
+        time.sleep(2)
     except Exception as e:
-        print(f"Could not open serial port {serial_port}: {e}")
+        print(f'Could not open serial port {serial_port}: {e}')
         return
 
     while True:
         try:
             line = arduino.readline().decode('utf-8').strip()
+            print("Arduino:")
             if line:
-                print(f"Received from Arduino: {line}")
-                if line == "BOTTLE_DETECTED":
-                    voucher = generate_and_store_voucher()
-                    if voucher:
-                        print(f"Voucher Generated: {voucher}")
-                        # Send voucher to Arduino to display
-                        arduino.write((voucher + "\n").encode('utf-8'))
-                    else:
-                        print("Failed to generate voucher")
+                print(f": {line}")
+                if line.startswith("BOTTLE_COUNT:"):
+                    try:
+                        count = int(line.split(":")[1])
+                        minutes = count * 5
+
+                        voucher = generate_and_store_voucher(duration=minutes)
+                        if voucher:
+                            print(f'Voucher Generated: {voucher}, Duration: {minutes} mins')
+                            arduino.write((voucher + "\n").encode('utf-8'))
+                        else:
+                            print("Failed to generate voucher")
+                    except Exception as e:
+                        print(f"Invalid count format: {e}")
         except Exception as e:
-            print(f"Error reading from Arduino: {e}")
+            print(f'Error reading from Arduino: {e}')
         time.sleep(0.1)
+
 
 # Start listener in background
 listener_thread = threading.Thread(target=arduino_listener, daemon=True)
@@ -133,33 +140,48 @@ def register():
 @app.route('/api/leaderboard', methods=['GET'])
 def leaderboard():
     """
-    Returns a leaderboard of users based on how many times they've redeemed vouchers.
+    Returns a leaderboard of users based on total voucher_duration,
+    grouped by redeemed_by_email. Also calculates total bottles = total_duration / 5.
     """
     try:
-        # MongoDB aggregation: count how many times each email appears with "redeem" action
+        # MongoDB aggregation pipeline
         pipeline = [
-            {"$match": {"action": "redeem"}},
-            {"$group": {"_id": "$email", "redeem_count": {"$sum": 1}}},
-            {"$sort": {"redeem_count": -1}},  # descending
-            {"$limit": 10}  # top 10 users
+            {"$match": {"redeemed": True, "redeemed_by_email": {"$ne": None}}},
+            {
+                "$group": {
+                    "_id": "$redeemed_by_email",
+                    "total_duration": {"$sum": "$voucher_duration"}
+                }
+            },
+            {"$sort": {"total_duration": -1}},
+            {"$limit": 10}
         ]
-        results = list(logs_col.aggregate(pipeline))
 
-        # Optional: include username from users_col
+        results = list(vouchers_col.aggregate(pipeline))
+
         leaderboard = []
         for r in results:
-            user = users_col.find_one({"email": r["_id"]})
+            email = r.get("_id")
+            total_duration = r.get("total_duration", 0)
+            bottle_count = total_duration / 5 if total_duration else 0
+
+            # Optional: get username
+            user = users_col.find_one({"email": email})
+            username = user.get("username") if user else email
+
             leaderboard.append({
-                "username": user["username"] if user else r["_id"],
-                "email": r["_id"],
-                "redeem_count": r["redeem_count"]
+                "username": username,
+                "email": email,
+                "total_duration": total_duration,
+                "bottle_count": round(bottle_count, 2)
             })
 
         return jsonify({"leaderboard": leaderboard}), 200
 
     except Exception as e:
-        print(f"Error generating leaderboard: {e}")
+        print(f"❌ Error generating leaderboard: {e}")
         return jsonify({"error": "Failed to generate leaderboard"}), 500
+
 
 # ----------------------------
 # Helper functions

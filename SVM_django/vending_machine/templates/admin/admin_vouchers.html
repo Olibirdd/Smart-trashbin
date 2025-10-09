@@ -29,7 +29,8 @@
     <table>
       <thead>
         <tr>
-          <th>Code</th>
+          <th>Voucher Code</th>
+          <th>Voucher Duration</th>
           <th>Status</th>
           <th>Redeemed By</th>
           <th>Created At</th>
@@ -40,6 +41,7 @@
         {% for voucher in vouchers %}
         <tr>
           <td>{{ voucher.voucher_code }}</td>
+          <td>{{ voucher.voucher_duration }} minutes</td>
           <td>{% if voucher.redeemed %}Redeemed{% else %}Available{% endif %}</td>
           <td>{% if voucher.redeemed_by_email %}{{ voucher.redeemed_by_email }}{% else %}-{% endif %}</td>
           <td>{{ voucher.created_at|date:"M d, Y H:i" }}</td>

@@ -13,24 +13,40 @@
         </div>
 
         <!-- Voucher Summary Cards -->
-        <div class="row mb-5">
-            <div class="col-md-6 mb-4">
-                <div class="card border-success shadow-sm">
-                    <div class="card-body text-center">
+        <div class="row mb-5 text-center">
+
+            <!-- Total Duration -->
+            <div class="col-md-4 mb-4">
+                <div class="card border-success shadow-sm h-100">
+                    <div class="card-body">
                         <div class="mb-3">
-                            <i class="fas fa-ticket-alt fa-3x" style="color:#3ac44c;"></i>
+                            <i class="fas fa-clock fa-3x" style="color:#3ac44c;"></i>
                         </div>
                         <h3 class="card-title">{{ total_duration_minutes }} minutes</h3>
                         <p class="card-text">Total Duration</p>
                     </div>
                 </div>
             </div>
-            
-            <div class="col-md-6 mb-4">
-                <div class="card border-success shadow-sm">
-                    <div class="card-body text-center">
+
+            <!-- Total Bottles -->
+            <div class="col-md-4 mb-4">
+                <div class="card border-success shadow-sm h-100">
+                    <div class="card-body">
                         <div class="mb-3">
-                            <i class="fas fa-wifi fa-3x" style="color:#096e16;"></i>
+                            <i class="fas fa-recycle fa-3x" style="color:#096e16;"></i>
+                        </div>
+                        <h3 class="card-title">{{ bottle_count }}</h3>
+                        <p class="card-text">Total Bottles</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Redeemed Vouchers -->
+            <div class="col-md-4 mb-4">
+                <div class="card border-success shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <i class="fas fa-ticket-alt fa-3x" style="color:#3ac44c;"></i>
                         </div>
                         <h3 class="card-title">{{ redeemed_vouchers }}</h3>
                         <p class="card-text">Redeemed Vouchers</p>
@@ -38,6 +54,7 @@
                 </div>
             </div>
         </div>
+
 
         <!-- Transactions Section -->
         <div class="card shadow-sm">
@@ -56,17 +73,23 @@
                                 <th>Date & Time</th>
                                 <th>Voucher Code</th>
                                 <th>Duration</th>
+                                <th>Bottles</th>
                                 <th>Status</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for transaction in transactions %}
+                            {% for transaction in transactions %} 
                             <tr>
-                                <td>{{ transaction.timestamp|date:"M d, Y H:i" }}</td>
+                                <td>{{ transaction.created_at|date:"M d, Y H:i" }}</td>
                                 <td>{{ transaction.voucher_code }}</td>
-                                <td>5 minutes</td>
+                                <td>{{ transaction.voucher_duration }} minutes</td>
+                                <td>{{ transaction.bottle }}</td>
                                 <td>
-                                    <span class="badge" style="background:#3ac44c;">Redeemed</span>
+                                    {% if transaction.redeemed %}
+                                        <span class="badge" style="background:#3ac44c;">Redeemed</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Unused</span>
+                                    {% endif %}
                                 </td>
                             </tr>
                             {% endfor %}
