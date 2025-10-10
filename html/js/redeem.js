@@ -20,7 +20,7 @@ form.addEventListener("submit", async (e) => {
   result.textContent = "";
 
   try {
-    const response = await fetch("/api/redeem", {
+    const response = await fetch("http://localhost:5000/api/redeem", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ voucher: code, email: email.value.trim() }),

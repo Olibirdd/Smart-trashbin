@@ -2,30 +2,48 @@
 # Usage: sudo ./revoke_mac.sh <MAC_ADDRESS>
 
 if [ "$EUID" -ne 0 ]; then
-  echo "Please run as root"
-  exit 1
+    echo "Please run as root"
+    exit 1
 fi
 
 MAC="$1"
 
-if [ -z "$MAC" ]; then
-  echo "Usage: $0 <MAC_ADDRESS>"
-  exit 1
+# Validate MAC format
+if [[ ! "$MAC" =~ ^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$ ]]; then
+    echo "Error: Invalid MAC format"
+    exit 1
 fi
 
-echo "Revoking MAC: $MAC"
-
-# 1️⃣ Remove forwarding rule
-if iptables -C FORWARD -m mac --mac-source "$MAC" -j ACCEPT 2>/dev/null; then
-    iptables -D FORWARD -m mac --mac-source "$MAC" -j ACCEPT
-    echo "MAC $MAC removed from FORWARD chain."
-else 
-  echo "Error: MAC $MAC not found in FORWARD chain."
+# Remove from MAC ipset
+if ipset test hotlist "$MAC" &>/dev/null; then
+    ipset del hotlist "$MAC"
+    echo "MAC $MAC removed from hotlist"
+else
+    echo "MAC $MAC not found in hotlist"
 fi
 
-# 2️⃣ Restore HTTP redirect for this MAC
-if iptables -t nat -C PREROUTING -i wlan0 -p tcp --dport 80 ! -d 192.168.50.1 -m mac --mac-source "$MAC" -j RETURN 2>/dev/null; then
-iptables -t nat -D PREROUTING -i wlan0 -p tcp --dport 80 ! -d 192.168.50.1 -m mac --mac-source "$MAC" -j RETURN
+# Get IP from ARP/neighbor table
+IP=$(ip neigh show dev enp2s0 | grep -i "$MAC" | awk '{print $1}')
+
+# Remove from IP ipset and Nginx whitelist
+MAPFILE=/etc/nginx/whitelist.map
+touch $MAPFILE
+
+if [ -n "$IP" ]; then
+    # Remove IP from hotlist_ip
+    if ipset test hotlist_ip "$IP" &>/dev/null; then
+        ipset del hotlist_ip "$IP"
+        echo "IP $IP removed from hotlist_ip"
+    fi
+
+    # Remove from Nginx whitelist map
+    grep -v "^$IP " $MAPFILE > ${MAPFILE}.tmp
+    mv ${MAPFILE}.tmp $MAPFILE
+    echo "IP $IP removed from Nginx whitelist"
+    
+    # Reload Nginx
+    nginx -s reload
+else
+    echo "IP for MAC $MAC not found; map may already be clear"
 fi
 
-echo "MAC $MAC revoked. Internet access blocked and captive portal restored."

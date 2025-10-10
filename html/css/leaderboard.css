@@ -18,9 +18,9 @@ body {
 .card {
   background: #fff;
   border-radius: 1.5rem;
-  padding: 2.5rem 2rem;
+  padding: 3rem 2.5rem;
   width: 90%;
-  max-width: 800px;
+  max-width: 600px;
   text-align: center;
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
   animation: fadeIn 0.8s ease;
@@ -38,21 +38,15 @@ header h1 {
   margin-bottom: 2rem;
 }
 
-#leaderboardWrapper {
-  width: 100%;
-  overflow-x: auto;
-  margin-top: 1.5rem;
-}
-
 #leaderboardTable {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
+  margin-top: 1.5rem;
   font-size: 1rem;
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  min-width: 500px; /* Prevents table from becoming too narrow */
 }
 
 #leaderboardTable th,
@@ -164,139 +158,4 @@ header h1 {
 .top-user {
   font-weight: bold;
   color: #096e16;
-}
-
-/* Mobile Responsive Styles */
-@media (max-width: 768px) {
-  .card {
-    padding: 2rem 1.5rem;
-    border-radius: 1rem;
-  }
-  
-  header h1 {
-    font-size: 1.8rem;
-  }
-  
-  .tagline {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-  }
-  
-  #leaderboardTable {
-    font-size: 0.9rem;
-    min-width: 400px;
-  }
-  
-  #leaderboardTable th,
-  #leaderboardTable td {
-    padding: 0.8rem 0.8rem;
-  }
-  
-  #leaderboardTable th:first-child,
-  #leaderboardTable td:first-child {
-    padding-left: 1rem;
-  }
-  
-  #leaderboardTable th:last-child,
-  #leaderboardTable td:last-child {
-    padding-right: 1rem;
-  }
-  
-  .rank-badge {
-    width: 25px;
-    height: 25px;
-    line-height: 25px;
-    font-size: 0.8rem;
-  }
-  
-  .link-text {
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  body {
-    padding: 15px;
-  }
-  
-  .card {
-    padding: 1.5rem 1rem;
-    border-radius: 0.8rem;
-  }
-  
-  header h1 {
-    font-size: 1.5rem;
-  }
-  
-  .tagline {
-    font-size: 0.9rem;
-    margin-bottom: 1.2rem;
-  }
-  
-  #leaderboardTable {
-    font-size: 0.85rem;
-    min-width: 350px;
-  }
-  
-  #leaderboardTable th,
-  #leaderboardTable td {
-    padding: 0.6rem 0.5rem;
-  }
-  
-  #leaderboardTable th:first-child,
-  #leaderboardTable td:first-child {
-    padding-left: 0.8rem;
-  }
-  
-  #leaderboardTable th:last-child,
-  #leaderboardTable td:last-child {
-    padding-right: 0.8rem;
-  }
-  
-  .rank-badge {
-    width: 22px;
-    height: 22px;
-    line-height: 22px;
-    font-size: 0.75rem;
-  }
-  
-  .link-text {
-    font-size: 0.85rem;
-    margin-top: 1.5rem;
-  }
-}
-
-/* Small mobile devices */
-@media (max-width: 360px) {
-  .card {
-    padding: 1.2rem 0.8rem;
-  }
-  
-  header h1 {
-    font-size: 1.3rem;
-  }
-  
-  .tagline {
-    font-size: 0.85rem;
-  }
-  
-  #leaderboardTable {
-    min-width: 320px;
-    font-size: 0.8rem;
-  }
-  
-  #leaderboardTable th,
-  #leaderboardTable td {
-    padding: 0.5rem 0.4rem;
-  }
-  
-  #leaderboardTable th:first-child,
-  #leaderboardTable td:first-child {
-    padding-left: 0.6rem;
-  }
-  
-  #leaderboardTable th:last-child,
-  #leaderboardTable td:last-child {
-    padding-right: 0.6rem;
-  }
 }

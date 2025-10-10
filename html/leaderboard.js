@@ -5,19 +5,24 @@ async function fetchLeaderboard() {
     spinner.style.display = 'block';
     
     try {
-        const response = await fetch('http://localhost:5000/api/leaderboard');
+        const response = await fetch('/api/leaderboard');
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        
+
+        // Debugging: see what data looks like
+        console.log("📊 Raw leaderboard data:", data);
+
         // Clear existing content
         leaderboardBody.innerHTML = '';
         
         if (data.leaderboard && data.leaderboard.length > 0) {
             data.leaderboard.forEach((user, index) => {
+                console.log(`👤 User ${index + 1}:`, user); // print each user
+
                 const row = document.createElement('tr');
                 
                 // Add special styling for top 3 users
@@ -25,10 +30,15 @@ async function fetchLeaderboard() {
                     row.classList.add('top-user');
                 }
                 
+                // ✅ Correct fields
+                const rank = index + 1;
+                const username = user.username || "Unknown";
+                const bottleCount = user.bottle_count ?? 0;  // use your backend field
+
                 row.innerHTML = `
-                    <td><span class="rank-badge">${index + 1}</span></td>
-                    <td>${user.username}</td>
-                    <td>${user.redeem_count}</td>
+                    <td><span class="rank-badge">${rank}</span></td>
+                    <td>${username}</td>
+                    <td>${bottleCount}</td>
                 `;
                 
                 leaderboardBody.appendChild(row);
@@ -44,7 +54,7 @@ async function fetchLeaderboard() {
             leaderboardBody.appendChild(row);
         }
     } catch (error) {
-        console.error('Failed to fetch leaderboard:', error);
+        console.error('❌ Failed to fetch leaderboard:', error);
         
         // Show error message
         leaderboardBody.innerHTML = `
