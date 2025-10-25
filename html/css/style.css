@@ -40,7 +40,6 @@ body {
   z-index: 10;
 }
 
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -146,6 +145,11 @@ header h1 {
   color: #2c7a7b;
 }
 
+.active-users {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #096e16;
+}
 
 /* Leaderboard link positioned at top-right above the card title */
 .leaderboard-link {
@@ -177,4 +181,3 @@ header h1 {
     transform: translateY(0);
   }
 }
-

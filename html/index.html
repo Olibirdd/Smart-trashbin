@@ -8,15 +8,17 @@
   </head>
   <body>
     <main class="card">
-      <a href="leaderboard.html" class="leaderboard-link">View Leaderboard</a>
+      <!-- Top bar: leaderboard + active users -->
+      <div class="top-bar">
+        <a href="leaderboard.html" class="leaderboard-link">View Leaderboard</a>
+      </div>
 
       <header>
         <h1>Smart Wi-Fi Bin</h1>
         <p class="tagline">Enter your voucher code to unlock Wi-Fi time.</p>
       </header>
-
       <section class="content">
-        <!-- Wrap everything that should hide when spinner is active -->
+        <span class="active-users" id="activeUsers">Active Users: 0/10</span>
         <div id="formWrapper">
           <form id="redeemForm" class="redeem-form">
             <input
@@ -33,14 +35,8 @@
             />
             <button type="submit" class="primary-btn">Apply Voucher</button>
           </form>
-
-          <p class="link-text">
-            Don’t have an account?
-            <a href="register.html" class="link-btn">Register here</a>
-          </p>
         </div>
 
-        <!-- Spinner -->
         <div id="spinner" class="spinner" hidden></div>
 
         <p id="result" class="result"></p>
