@@ -27,17 +27,6 @@ def init_db():
             active INTEGER NOT NULL DEFAULT 0
         )
     """)
-    now = datetime.now()
-
-    for i in range(10):
-        mac = f"00:11:22:33:44:{i:02X}"
-        ip = f"192.168.1.{100 + i}"
-        expires = now + timedelta(minutes=1)
-        active = 1
-        cursor.execute(
-            "INSERT INTO access_time (mac_address, ip_address, expires, active) VALUES (?, ?, ?, ?)",
-            (mac, ip, expires, active)
-        )
 
     conn.commit()
     conn.close()
