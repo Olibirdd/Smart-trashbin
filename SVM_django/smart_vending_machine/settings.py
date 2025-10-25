@@ -1,27 +1,40 @@
+import os
 from pathlib import Path
 
+# Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'replace-this-with-a-secure-key-for-production'
+# Secret key
+SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "fallback-secret-key")
 
-DEBUG = True
+# Debug mode (False for production)
+DEBUG = False
 
-ALLOWED_HOSTS = []
+# Allowed hosts (your Render app URL)
+ALLOWED_HOSTS = [
+    'smart-bin-web.onrender.com',
+    'localhost',
+    '127.0.0.1',
+    '.onrender.com'  # This allows any subdomain of onrender.com
+]
 
+# Installed apps
 INSTALLED_APPS = [
-    # default django apps
+    # Default Django apps
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    # our app
+    # Your app
     'vending_machine',
 ]
 
+# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # for serving static files
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -30,13 +43,14 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+# Root URL configuration
 ROOT_URLCONF = 'smart_vending_machine.urls'
 
+# Templates
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # allow a project-level templates dir too
-        'DIRS': [BASE_DIR / "vending_machine" /"templates"],
+        'DIRS': [BASE_DIR / "vending_machine" / "templates"],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -49,23 +63,22 @@ TEMPLATES = [
     },
 ]
 
+# WSGI application
 WSGI_APPLICATION = 'smart_vending_machine.wsgi.application'
 
+# Database (MongoDB using Djongo)
 DATABASES = {
     'default': {
         'ENGINE': 'djongo',
-        'NAME': 'smart_vending',   # your MongoDB database name
+        'NAME': 'smart_vending',
         'ENFORCE_SCHEMA': False,
         'CLIENT': {
-            'host': 'mongodb+srv://smart_bin_wifi:smart_bin_wifi@cluster0.9fjmqox.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0',
-            'port': 27017,
-            # If you use authentication:
-            # 'username': 'yourUser',
-            # 'password': 'yourPass',
+            'host': os.environ.get("MONGO_URI"),
         }
     }
 }
 
+# Password validation
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',},
@@ -73,19 +86,22 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',},
 ]
 
+# Localization
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
 USE_I18N = True
 USE_TZ = True
 
+# Static files
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [BASE_DIR / "static"]
+STATICFILES_DIRS = [BASE_DIR / "vending_machine" / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# Default primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# login redirects
+# Login redirects
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
-
-

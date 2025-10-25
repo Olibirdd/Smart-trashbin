@@ -372,6 +372,28 @@ def redeem():
     return jsonify({'message': message, 'duration': duration_minutes})
 
 
+# ----------------------------
+# API: Delete Voucher
+# ----------------------------
+def voucher_cleaner():
+    """Delete vouchers older than 3 days that are still unredeemed."""
+    while True:
+        try:
+            time.sleep(3600)  # run every hour
+            now = datetime.utcnow()
+            threshold = now - timedelta(days=3)
+            print("Checking for unredeemed vouchers older than 3 days...")
+            # Delete unredeemed vouchers older than 3 days
+            result = vouchers_col.delete_many({
+                "redeemed": False,
+                "created_at": {"$lt": threshold}
+            })
+
+            if result.deleted_count > 0:
+                print(f"🧹 Deleted {result.deleted_count} expired unredeemed vouchers (older than 3 days).")
+        except Exception as e:
+            print(f"❌ Voucher cleaner error: {e}")
+
 
 # ----------------------------
 # Expiry Watcher (SQLite only)
@@ -408,6 +430,7 @@ def expiry_watcher():
 # ----------------------------
 if __name__ == '__main__':
     threading.Thread(target=expiry_watcher, daemon=True).start()
+    threading.Thread(target=voucher_cleaner, daemon=True).start()
     app.run(host='0.0.0.0', port=5000)               
                 
 

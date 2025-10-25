@@ -1,0 +1,17 @@
+body {
+  background: linear-gradient(135deg, #3ac44c, #096e16);
+  color: #fff; 
+  font-family: "Segoe UI", Tahoma, sans-serif;
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #fff; 
+}
+
+.card img {
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: 8px; 
+}
