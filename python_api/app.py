@@ -15,10 +15,7 @@ import certifi
 from django.conf import settings
 from django.contrib.auth.hashers import make_password, check_password
 from gen_voucher import generate_and_store_voucher
-from init_db import init_db
-
-
-
+from init_db import init_db, check_mac_count
 
 # ----------------------------
 # Django setup
@@ -261,19 +258,21 @@ def generate_voucher_endpoint():
 def test():
     return jsonify({"success": True,"message": "ok"})
     
-from flask import Flask, request, jsonify
-from datetime import datetime, timedelta
-import sqlite3, subprocess
-
 @app.route('/api/redeem', methods=['POST'])
 def redeem():
     data = request.get_json()
     voucher = data.get('voucher')
     email = data.get('email') 
-
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
     now = datetime.utcnow()  # Use UTC for MongoDB timestamps
+    cursor.execute("SELECT COUNT(DISTINCT mac_address) FROM access_time WHERE active=1")
+    active_count = cursor.fetchone()[0]
 
-    # --- MongoDB: Check if user exists ---
+    if active_count >= 10:
+        conn.close()
+        return jsonify({'error': 'No slots available. Please try again later.'}), 400
+
     user = users_col.find_one({"email": email})
     if not user:
         return jsonify({'error': 'Account not found. Please create an account.'}), 400
@@ -284,14 +283,11 @@ def redeem():
         return jsonify({'error': 'Invalid voucher'}), 400
     elif voucher_doc.get("redeemed", False):
         return jsonify({'error': 'Voucher already redeemed'}), 400
-
+    
     # ✅ Use voucher_duration from MongoDB
     duration_minutes = voucher_doc.get("voucher_duration", 5)  # fallback = 5 mins
 
     # --- SQLite: Handle MAC and access control ---
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-
     client_ip = request.headers.get('X-Real-IP', request.remote_addr)
     mac = "00:11:22:33:44:55" if client_ip == "127.0.0.1" else get_mac_from_ip(client_ip)
     if not mac:
@@ -421,7 +417,7 @@ def expiry_watcher():
                     print(f"Failed to remove MAC {mac}: {e}")
 
                 # Set active to 0 instead of deleting
-                cur.execute("UPDATE access_time SET active=0 WHERE mac_address=?", (mac,))
+                cur.execute("DELETE FROM access_time WHERE mac_address=?", (mac,))
 
         conn.commit()
         conn.close()
