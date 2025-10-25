@@ -60,6 +60,7 @@ mdb = client["smart_vending"]
 users_col = mdb["users"]
 vouchers_col = mdb["vouchers"]
 logs_col = mdb["activity_logs"]
+MAX_USERS = 10
 
 # Test connection
 try:
@@ -238,8 +239,6 @@ def generate_and_store_voucher(duration, max_attempts=10):
             })
             return code
     return None
-
-
 def generate_voucher_endpoint():
     code = generate_and_store_voucher()
     if code:
@@ -257,6 +256,26 @@ def generate_voucher_endpoint():
 @app.route('/api/test', methods=['POST'])
 def test():
     return jsonify({"success": True,"message": "ok"})
+
+def get_active_user_count():
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT COUNT(rowid) FROM access_time")
+    count = cursor.fetchone()[0]
+    conn.close()
+    return count
+
+
+@app.route("/active_users", methods=["GET"])
+def active_users():
+    try:
+        active_count = get_active_user_count()
+        return jsonify({
+            "active": active_count,
+            "max": MAX_USERS
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
     
 @app.route('/api/redeem', methods=['POST'])
 def redeem():
